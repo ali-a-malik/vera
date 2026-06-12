@@ -1,0 +1,14 @@
+{
+  "cycles": 10,
+  "coverage_hits": {
+    "wrote_until_full": false,
+    "read_until_empty": true,
+    "simultaneous_read_write": true,
+    "pointer_wraparound": false,
+    "write_while_full": false,
+    "read_while_empty": true
+  },
+  "coverage_percent": 50,
+  "mismatch_count": 0,
+  "mismatches": []
+}

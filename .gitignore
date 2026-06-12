@@ -1,0 +1,10 @@
+node_modules/
+__pycache__/
+*.pyc
+.env
+tb/sim_build*/
+tb/results.xml
+*.vcd
+web/public/state.json
+dist/
+.DS_Store

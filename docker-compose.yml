@@ -1,0 +1,13 @@
+services:
+  engine:
+    build: .
+    image: vera-engine
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    env_file:
+      - path: .env
+        required: false

@@ -1,0 +1,199 @@
+{
+  "patterns": {
+    "read_until_empty": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "write",
+        "val": 32
+      },
+      {
+        "op": "write",
+        "val": 33
+      },
+      {
+        "op": "write",
+        "val": 34
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      }
+    ],
+    "simultaneous_read_write": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "write",
+        "val": 10
+      },
+      {
+        "op": "write_read",
+        "val": 20
+      },
+      {
+        "op": "write_read",
+        "val": 21
+      },
+      {
+        "op": "write_read",
+        "val": 22
+      },
+      {
+        "op": "read"
+      }
+    ],
+    "pointer_wraparound": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "write",
+        "val": 1
+      },
+      {
+        "op": "write",
+        "val": 2
+      },
+      {
+        "op": "write_read",
+        "val": 64
+      },
+      {
+        "op": "write_read",
+        "val": 65
+      },
+      {
+        "op": "write_read",
+        "val": 66
+      },
+      {
+        "op": "write_read",
+        "val": 67
+      },
+      {
+        "op": "write_read",
+        "val": 68
+      },
+      {
+        "op": "write_read",
+        "val": 69
+      },
+      {
+        "op": "write_read",
+        "val": 70
+      },
+      {
+        "op": "write_read",
+        "val": 71
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      }
+    ],
+    "read_while_empty": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "write",
+        "val": 7
+      },
+      {
+        "op": "read"
+      }
+    ],
+    "wrote_until_full": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "write",
+        "val": 16
+      },
+      {
+        "op": "write",
+        "val": 17
+      },
+      {
+        "op": "write",
+        "val": 18
+      },
+      {
+        "op": "write",
+        "val": 19
+      },
+      {
+        "op": "write",
+        "val": 20
+      },
+      {
+        "op": "write",
+        "val": 21
+      },
+      {
+        "op": "write",
+        "val": 22
+      },
+      {
+        "op": "write",
+        "val": 23
+      }
+    ],
+    "write_while_full": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "write",
+        "val": 16
+      },
+      {
+        "op": "write",
+        "val": 17
+      },
+      {
+        "op": "write",
+        "val": 18
+      },
+      {
+        "op": "write",
+        "val": 19
+      },
+      {
+        "op": "write",
+        "val": 20
+      },
+      {
+        "op": "write",
+        "val": 21
+      },
+      {
+        "op": "write",
+        "val": 22
+      },
+      {
+        "op": "write",
+        "val": 23
+      },
+      {
+        "op": "write",
+        "val": 99
+      }
+    ]
+  },
+  "runs": 5
+}

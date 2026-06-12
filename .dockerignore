@@ -1,0 +1,8 @@
+node_modules
+web/node_modules
+.git
+*.vcd
+tb/sim_build
+tb/results.xml
+__pycache__
+.env
