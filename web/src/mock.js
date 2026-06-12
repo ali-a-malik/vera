@@ -63,9 +63,20 @@ export const initialState = () => ({
   points: POINT_NAMES.map((name) => ({ name, hit: false })),
   activity_log: [],
   counts: { tests_generated: 0, bugs_found: 0, hours_saved_est: 0, tokens_used: 0 },
+  tests: [],
+  analysis: null,
   bug: null,
   memory: { patterns_learned: 0 },
 });
+
+const MOCK_EXPLANATIONS = {
+  1: "Fills the FIFO one value at a time until all 8 slots are used, checking the full flag rises exactly when the buffer runs out of space.",
+  2: "Writes a few values then drains them all back out, confirming the FIFO returns to empty and the data comes out in the order it went in.",
+  3: "Reads and writes in the same clock cycle while the buffer is partly full — the trickiest timing path, where the count must stay unchanged.",
+  4: "Pushes more than 8 values through so the internal pointers wrap past the end of the buffer back to slot 0 without corrupting data.",
+  5: "Fills the FIFO to the brim and then tries one write too many — the overflow attempt that exposed the planted full-flag bug.",
+  6: "Issues a read while the FIFO is completely empty, confirming the underflow attempt is safely ignored.",
+};
 
 const fmt = (s) =>
   `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
@@ -98,18 +109,29 @@ export function useMockEngine(enabled) {
         }
         if (b.hit != null)
           n.points = s.points.map((p, i) => (i === b.hit ? { ...p, hit: true } : p));
-        if (b.tests != null) n.counts.tests_generated = b.tests;
+        if (b.tests != null) {
+          n.counts.tests_generated = b.tests;
+          n.tests = [...s.tests, {
+            id: b.tests,
+            target: POINT_NAMES[b.hit ?? 0],
+            source: "ai",
+            ops: [],
+            explanation: MOCK_EXPLANATIONS[b.tests] || "",
+            gained: [POINT_NAMES[b.hit ?? 0]],
+            mismatches: 0,
+          }];
+        }
         if (b.bugs != null) n.counts.bugs_found = b.bugs;
         if (b.tok) n.counts.tokens_used = s.counts.tokens_used + b.tok * 1000;
         n.counts.hours_saved_est = Math.round(
           (b.tests ?? s.counts.tests_generated) * 2.3
         );
         if (b.bug) n.bug = BUG;
-        if (b.log)
-          n.activity_log = [
-            ...s.activity_log,
-            { level: b.log[0], text: b.log[1], t: fmt(clock) },
-          ].slice(-20);
+        if (b.log) {
+          const entry = { level: b.log[0], text: b.log[1], t: fmt(clock) };
+          if (b.tests != null) entry.test = b.tests;
+          n.activity_log = [...s.activity_log, entry].slice(-20);
+        }
         return n;
       });
 

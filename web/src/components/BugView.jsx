@@ -1,18 +1,22 @@
 import { ArrowLeft, Bug } from "lucide-react";
 import Waveform from "./Waveform";
+import RunChat from "./RunChat";
 
 const fmtVal = (v) => (v === true ? "1" : v === false ? "0" : String(v));
 
-export default function BugView({ bug, onBack }) {
+export default function BugView({ bug, sim, connected, onBack }) {
   if (!bug) {
     return (
-      <main className="empty">
-        <Bug size={26} />
-        <p>No failure captured yet.</p>
-        <span className="mono">The agent is still hunting — failures land here when found.</span>
-        <button className="inspect" onClick={onBack}>
-          <ArrowLeft size={14} /> Back to dashboard
-        </button>
+      <main className="buggrid">
+        <div className="empty" style={{ padding: "44px 0 30px" }}>
+          <Bug size={26} />
+          <p>No failure captured yet.</p>
+          <span className="mono">The agent is still hunting — failures land here when found.</span>
+          <button className="inspect" onClick={onBack}>
+            <ArrowLeft size={14} /> Back to dashboard
+          </button>
+        </div>
+        <RunChat sim={sim} connected={connected} />
       </main>
     );
   }
@@ -80,6 +84,8 @@ export default function BugView({ bug, onBack }) {
           )}
         </section>
       </div>
+
+      <RunChat sim={sim} connected={connected} />
     </main>
   );
 }

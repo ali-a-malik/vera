@@ -16,7 +16,8 @@ TB_DIR = os.path.join(REPO_ROOT, "tb")
 SIM_TIMEOUT_S = 120
 
 
-def run_stimulus(ops, dut="good"):
+def run_stimulus(ops, dut="good", design="fifo_8x8"):
+    make_design = "arbiter" if design == "rr_arbiter" else "fifo"
     with tempfile.TemporaryDirectory() as tmp:
         stim_path = os.path.join(tmp, "stimulus.json")
         result_path = os.path.join(tmp, "result.json")
@@ -30,7 +31,7 @@ def run_stimulus(ops, dut="good"):
 
         try:
             proc = subprocess.run(
-                ["make", "-s", f"DUT={dut}"],
+                ["make", "-s", f"DUT={dut}", f"DESIGN={make_design}"],
                 cwd=TB_DIR, env=env,
                 capture_output=True, text=True, timeout=SIM_TIMEOUT_S,
             )

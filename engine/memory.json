@@ -1,6 +1,6 @@
 {
   "patterns": {
-    "read_until_empty": [
+    "fifo_8x8:read_until_empty": [
       {
         "op": "reset"
       },
@@ -26,7 +26,7 @@
         "op": "read"
       }
     ],
-    "wrote_until_full": [
+    "fifo_8x8:simultaneous_read_write": [
       {
         "op": "reset"
       },
@@ -37,87 +37,135 @@
       {
         "op": "write",
         "val": 2
-      },
-      {
-        "op": "write",
-        "val": 3
-      },
-      {
-        "op": "write",
-        "val": 4
-      },
-      {
-        "op": "write",
-        "val": 5
-      },
-      {
-        "op": "write",
-        "val": 6
-      },
-      {
-        "op": "write",
-        "val": 7
-      },
-      {
-        "op": "write",
-        "val": 8
-      }
-    ],
-    "pointer_wraparound": [
-      {
-        "op": "reset"
-      },
-      {
-        "op": "write",
-        "val": 1
-      },
-      {
-        "op": "write",
-        "val": 2
-      },
-      {
-        "op": "write",
-        "val": 3
-      },
-      {
-        "op": "write",
-        "val": 4
-      },
-      {
-        "op": "write",
-        "val": 5
-      },
-      {
-        "op": "write",
-        "val": 6
-      },
-      {
-        "op": "write",
-        "val": 7
-      },
-      {
-        "op": "write",
-        "val": 8
-      }
-    ],
-    "simultaneous_read_write": [
-      {
-        "op": "reset"
-      },
-      {
-        "op": "write",
-        "val": 42
-      },
-      {
-        "op": "write",
-        "val": 85
       },
       {
         "op": "write_read",
-        "val": 17
+        "val": 3
       }
     ],
-    "write_while_full": [
+    "fifo_8x8:wrote_until_full": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "write",
+        "val": 1
+      },
+      {
+        "op": "write",
+        "val": 2
+      },
+      {
+        "op": "write",
+        "val": 3
+      },
+      {
+        "op": "write",
+        "val": 4
+      },
+      {
+        "op": "write",
+        "val": 5
+      },
+      {
+        "op": "write",
+        "val": 6
+      },
+      {
+        "op": "write",
+        "val": 7
+      },
+      {
+        "op": "write",
+        "val": 8
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "write",
+        "val": 9
+      },
+      {
+        "op": "write",
+        "val": 10
+      }
+    ],
+    "fifo_8x8:pointer_wraparound": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "write",
+        "val": 1
+      },
+      {
+        "op": "write",
+        "val": 2
+      },
+      {
+        "op": "write",
+        "val": 3
+      },
+      {
+        "op": "write",
+        "val": 4
+      },
+      {
+        "op": "write",
+        "val": 5
+      },
+      {
+        "op": "write",
+        "val": 6
+      },
+      {
+        "op": "write",
+        "val": 7
+      },
+      {
+        "op": "write",
+        "val": 8
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "write",
+        "val": 9
+      },
+      {
+        "op": "write",
+        "val": 10
+      }
+    ],
+    "fifo_8x8:read_while_empty": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "read"
+      }
+    ],
+    "fifo_8x8:write_while_full": [
       {
         "op": "reset"
       },
@@ -158,14 +206,126 @@
         "val": 9
       }
     ],
-    "read_while_empty": [
+    "rr_arbiter:solo_req0_granted": [
       {
         "op": "reset"
       },
       {
+        "op": "write",
+        "val": 32
+      },
+      {
+        "op": "write",
+        "val": 33
+      },
+      {
+        "op": "write",
+        "val": 34
+      },
+      {
         "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      }
+    ],
+    "rr_arbiter:solo_req1_granted": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "write",
+        "val": 32
+      },
+      {
+        "op": "write",
+        "val": 33
+      },
+      {
+        "op": "write",
+        "val": 34
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      }
+    ],
+    "rr_arbiter:contention": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "write",
+        "val": 42
+      },
+      {
+        "op": "write_read",
+        "val": 99
+      }
+    ],
+    "rr_arbiter:idle_cycle": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "idle"
+      }
+    ],
+    "rr_arbiter:grant_after_idle": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "idle"
+      },
+      {
+        "op": "write",
+        "val": 1
+      },
+      {
+        "op": "idle"
+      },
+      {
+        "op": "read"
+      }
+    ],
+    "rr_arbiter:rr_alternation": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "write_read",
+        "val": 0
+      },
+      {
+        "op": "write_read",
+        "val": 0
+      },
+      {
+        "op": "write_read",
+        "val": 0
+      },
+      {
+        "op": "write_read",
+        "val": 0
+      },
+      {
+        "op": "write_read",
+        "val": 0
+      },
+      {
+        "op": "write_read",
+        "val": 0
       }
     ]
   },
-  "runs": 2
+  "runs": 9
 }
