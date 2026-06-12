@@ -15,6 +15,7 @@ import threading
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from engine.orchestrator import Orchestrator
@@ -122,5 +123,12 @@ def reset():
         return {"ok": True}
 
 
+# single-service deploys: serve the built dashboard (web/dist) if present;
+# in local dev the Vite dev server on :5173 handles the UI instead
+_dist = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web", "dist")
+if os.path.isdir(_dist):
+    app.mount("/", StaticFiles(directory=_dist, html=True), name="dashboard")
+
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))

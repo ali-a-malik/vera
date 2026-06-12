@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: vera
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/state
+    envVars:
+      - key: PIONEER_API_KEY
+        sync: false   # set in the Render dashboard — never committed

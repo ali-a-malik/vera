@@ -1,8 +1,10 @@
 node_modules
 web/node_modules
+web/dist
 .git
 *.vcd
-tb/sim_build
+tb/sim_build*
 tb/results.xml
 __pycache__
+*.pyc
 .env
