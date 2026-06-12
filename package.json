@@ -1,0 +1,19 @@
+{
+  "name": "vera",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "lucide-react": "^1.18.0",
+    "recharts": "^3.8.1"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
+  }
+}
