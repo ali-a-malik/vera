@@ -92,6 +92,18 @@
         "op": "read"
       },
       {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
         "op": "write",
         "val": 9
       },
@@ -135,6 +147,18 @@
       {
         "op": "write",
         "val": 8
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
+      },
+      {
+        "op": "read"
       },
       {
         "op": "read"
@@ -327,5 +351,5 @@
       }
     ]
   },
-  "runs": 9
+  "runs": 11
 }
