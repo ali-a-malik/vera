@@ -22,6 +22,17 @@ ORCHESTRATOR (engine/orchestrator.py) — loop until coverage ≥ 95%
 
 Coverage tracks what was *exercised*; the checker decides *correctness*.
 
+## The model layer (all via Pioneer.ai, one key)
+
+| Model | Job |
+|---|---|
+| `claude-sonnet-4-6` | fast brain: stimulus generation + per-test plain-English explanations |
+| `claude-fable-5` | heavy brain: the post-run engineering analysis stored in state |
+| `claude-opus-4-8` | the "ask Vera" chat on the Bug detail page, grounded in the Fable 5 analysis + run data + RTL (`POST /api/chat`) |
+
+On the dashboard, click any green "test #N" line to expand what that test
+does in plain English.
+
 ## Setup
 
 Everything simulator-side runs in Docker — no local iverilog/cocotb needed.
@@ -57,7 +68,9 @@ docker compose logs -f               # engine logs
 # engine CLI (inside the container):
 docker compose exec engine python -m engine.orchestrator --dut buggy --demo
 docker compose exec engine python -m engine.orchestrator --dut good --no-ai
+docker compose exec engine python -m engine.orchestrator --design rr_arbiter --reuse-memory
 cd tb && make DUT=buggy              # raw cocotb run (inside container)
+cd tb && make DESIGN=arbiter         # second design
 ```
 
 API: `GET /api/state` · `POST /api/start {dut, demo, use_ai, reuse_memory}` ·
@@ -83,8 +96,12 @@ the off-by-one and proposes the one-line fix.
    off-by-one. Vera drove into the corner, caught the mismatch against the
    reference model, shrank it to 7 writes, and explained the cause." Click
    **Inspect failure** for the waveform + suggested fix.
-5. **(2:20) Flywheel** — coverage hits target; "patterns learned" badge.
-   "Every pattern that worked is saved — new designs start smarter."
+5. **(2:20) Flywheel** — coverage hits target. Switch the design picker to
+   **rr_arbiter** and press Start: patterns learned on the FIFO replay on the
+   new design (same stimulus vocabulary, mapped to its inputs), the climb is
+   faster, and a green "reused N patterns" badge appears. Zero bugs on the
+   clean arbiter — Vera doesn't cry wolf. "Every pattern that worked is
+   saved — new designs start smarter."
 6. **(2:50) Vision** — "Today: a FIFO on a free simulator. The same loop
    scales to real chips on commercial tools."
 
@@ -100,12 +117,18 @@ the off-by-one and proposes the one-line fix.
 ## Repo map
 
 ```
-rtl/        fifo.v (correct), fifo_buggy.v (planted off-by-one full flag)
-tb/         cocotb data-driven runner + Makefile (SIM=icarus, DUT=good|buggy)
-engine/     orchestrator, strategy+memory, agent_gen, runner, checker,
-            coverage_model, triage, state
+rtl/        fifo.v (correct), fifo_buggy.v (planted off-by-one full flag),
+            arbiter.v (clean round-robin arbiter — the second design)
+tb/         cocotb data-driven runners + Makefile (DESIGN=fifo|arbiter, DUT=good|buggy)
+engine/     orchestrator, designs registry, strategy+memory, agent_gen,
+            runner, checker, coverage_model, triage, state
 server.py   FastAPI: loop in a background thread + /api/*
 web/        React+Vite dashboard (polls /api/state at 1 Hz)
 Dockerfile  python3.12 + iverilog + cocotb + fastapi + anthropic
 run.sh      one command: engine container + dashboard
 ```
+
+All designs share one stimulus vocabulary (`write / read / write_read / idle /
+reset`); each testbench maps it to its own inputs (arbiter: `write`→req0,
+`read`→req1, `write_read`→contention). That shared shape is what makes
+memory patterns transfer between designs.

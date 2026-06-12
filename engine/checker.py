@@ -52,6 +52,37 @@ class ReferenceFifo:
         }
 
 
+class ReferenceArbiter:
+    """Known-good 2-requester round-robin arbiter (mirrors rtl/arbiter.v)."""
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.gnt0 = False
+        self.gnt1 = False
+        self.last = 1  # first contested grant goes to req0
+
+    def step(self, *, rst=False, req0=False, req1=False, **_):
+        if rst:
+            self.reset()
+        else:
+            self.gnt0 = self.gnt1 = False
+            if req0 and not req1:
+                self.gnt0 = True
+            elif req1 and not req0:
+                self.gnt1 = True
+            elif req0 and req1:
+                if self.last:
+                    self.gnt0, self.last = True, 0
+                else:
+                    self.gnt1, self.last = True, 1
+        return self.outputs()
+
+    def outputs(self):
+        return {"gnt0": self.gnt0, "gnt1": self.gnt1}
+
+
 def compare(expected, got):
     """Return dict of mismatching fields ({field: (expected, got)}) or {}."""
     diffs = {}

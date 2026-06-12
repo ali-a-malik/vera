@@ -13,7 +13,9 @@ STATE_PATH = os.path.join(REPO_ROOT, "web", "public", "state.json")
 _lock = threading.Lock()
 
 
-def initial_state(dut="fifo_8x8", target=95):
+def initial_state(dut="fifo_8x8", target=95, point_names=None):
+    if point_names is None:
+        point_names = [POINT_NAMES[k] for k in POINT_KEYS]
     return {
         "status": "idle",
         "dut": dut,
@@ -21,10 +23,12 @@ def initial_state(dut="fifo_8x8", target=95):
         "target": target,
         "iteration": 0,
         "history": [{"iter": 0, "coverage": 0}],
-        "points": [{"name": POINT_NAMES[k], "hit": False} for k in POINT_KEYS],
+        "points": [{"name": n, "hit": False} for n in point_names],
         "activity_log": [],
         "counts": {"tests_generated": 0, "bugs_found": 0,
                    "hours_saved_est": 0, "tokens_used": 0},
+        "tests": [],
+        "analysis": None,
         "bug": None,
         "memory": {"patterns_learned": 0},
     }

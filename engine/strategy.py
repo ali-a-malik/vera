@@ -1,24 +1,16 @@
 """Agent 3 — Strategy: pick the most valuable uncovered point; consult memory.
 
-memory.json: {"patterns": {"<point_key>": [ops...]}, "runs": N}
-A pattern is the stimulus that closed that point on a previous design/run.
+memory.json: {"patterns": {"<design>:<point_key>": [ops...]}, "runs": N}
+A pattern is the stimulus that closed that point. Patterns are namespaced by
+design; cross-design reuse goes through library() — the stimulus *shapes*
+(fill, drain, both-at-once, alternate) transfer because all designs share
+the same op vocabulary.
 """
 
 import json
 import os
 
 MEMORY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "memory.json")
-
-# cheap-to-deep ordering: easy structural cases first, boundary probes
-# (fill-to-full, overflow) last — those are worth most once basics are closed
-PRIORITY = [
-    "read_until_empty",
-    "simultaneous_read_write",
-    "pointer_wraparound",
-    "read_while_empty",
-    "wrote_until_full",
-    "write_while_full",
-]
 
 
 def load_memory():
@@ -36,18 +28,38 @@ def save_memory(mem):
         json.dump(mem, f, indent=2)
 
 
-def pick_target(uncovered):
+def pick_target(uncovered, priority):
     """Highest-priority uncovered point."""
-    for key in PRIORITY:
+    for key in priority:
         if key in uncovered:
             return key
     return uncovered[0] if uncovered else None
 
 
-def known_pattern(mem, point_key):
-    return mem.get("patterns", {}).get(point_key)
+def known_pattern(mem, design, point_key):
+    return mem.get("patterns", {}).get(f"{design}:{point_key}")
 
 
-def remember(mem, point_key, ops):
-    mem.setdefault("patterns", {})[point_key] = ops
+def remember(mem, design, point_key, ops):
+    mem.setdefault("patterns", {})[f"{design}:{point_key}"] = ops
     save_memory(mem)
+
+
+def library(mem, exclude_design=None, cap=5):
+    """Unique patterns learned on OTHER designs — the cross-design flywheel.
+
+    Returns [(source_design, point_key, ops), ...], deduped by ops, capped.
+    """
+    out, seen = [], set()
+    for key, ops in mem.get("patterns", {}).items():
+        design, _, point = key.partition(":")
+        if design == exclude_design:
+            continue
+        sig = json.dumps(ops, sort_keys=True)
+        if sig in seen:
+            continue
+        seen.add(sig)
+        out.append((design, point, ops))
+        if len(out) >= cap:
+            break
+    return out

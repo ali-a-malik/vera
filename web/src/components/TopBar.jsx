@@ -10,7 +10,7 @@ export default function TopBar({
   const done = sim.status === "done";
   const error = sim.status === "error";
   const activeDesign = designs.find((d) => d.id === active) || {};
-  const activeName = sim.dut || activeDesign.name || "—";
+  const activeName = activeDesign.name || sim.dut || "—";
 
   return (
     <header className="bar">

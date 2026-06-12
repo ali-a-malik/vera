@@ -23,12 +23,12 @@ def cluster(mismatches):
     return list(seen.values())
 
 
-def _fails(ops, dut):
-    out = run_stimulus(ops, dut=dut)
+def _fails(ops, dut, design):
+    out = run_stimulus(ops, dut=dut, design=design)
     return out["ok"] and out["result"]["mismatch_count"] > 0
 
 
-def shrink(ops, dut="buggy", log=lambda *a: None):
+def shrink(ops, dut="buggy", design="fifo_8x8", log=lambda *a: None):
     """Find a small sub-sequence of `ops` that still produces a mismatch.
 
     1. Truncate to the first mismatch cycle (ops after it are irrelevant).
@@ -37,7 +37,7 @@ def shrink(ops, dut="buggy", log=lambda *a: None):
     """
     runs = 0
 
-    out = run_stimulus(ops, dut=dut)
+    out = run_stimulus(ops, dut=dut, design=design)
     if not (out["ok"] and out["result"]["mismatch_count"] > 0):
         return ops  # can't reproduce; return as-is
     first_bad = out["result"]["mismatches"][0]["cycle"]
@@ -48,7 +48,7 @@ def shrink(ops, dut="buggy", log=lambda *a: None):
     while i >= 0 and runs < MAX_SHRINK_RUNS:
         candidate = current[:i] + current[i + 1:]
         runs += 1
-        if candidate and _fails(candidate, dut):
+        if candidate and _fails(candidate, dut, design):
             current = candidate
         i -= 1
 
@@ -76,13 +76,15 @@ def describe_repro(minimal_ops, mismatch):
     return steps
 
 
-def root_cause(minimal_ops, mismatch, dut="buggy"):
+def root_cause(minimal_ops, mismatch, dut="buggy", design="fifo_8x8"):
     """Hypothesis + suggested fix from the model, given the failing stimulus
     AND the RTL source (verification engineers have RTL access; so does Vera).
     Returns ({"hypothesis": str, "fix": {"from","to"}|None}, tokens).
     Degrades gracefully without an API key."""
     import os
-    rtl_file = "fifo_buggy.v" if dut == "buggy" else "fifo.v"
+    from engine import designs
+    cfg = designs.get(design)
+    rtl_file = cfg["rtl"].get(dut, cfg["rtl"]["good"])
     rtl_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                             "rtl", rtl_file)
     try:
@@ -101,7 +103,7 @@ def root_cause(minimal_ops, mismatch, dut="buggy"):
             model=MODEL,
             max_tokens=500,
             messages=[{"role": "user", "content": (
-                "This synchronous FIFO (WIDTH=8 DEPTH=8) failed verification.\n\n"
+                f"This hardware design ({design}) failed verification.\n\n"
                 f"RTL source:\n```verilog\n{rtl}\n```\n\n"
                 f"Smallest failing stimulus (one op per cycle): {json.dumps(minimal_ops)}\n"
                 f"At the final cycle the reference model expected "
@@ -127,17 +129,17 @@ def root_cause(minimal_ops, mismatch, dut="buggy"):
         return {"hypothesis": f"(root-cause unavailable: {e})", "fix": None}, 0
 
 
-def triage(failing_ops, mismatches, dut="buggy", log=lambda *a: None):
+def triage(failing_ops, mismatches, dut="buggy", design="fifo_8x8", log=lambda *a: None):
     """Full triage: cluster -> shrink -> root-cause. Returns a bug record."""
     rep = cluster(mismatches)[0]
-    minimal = shrink(failing_ops, dut=dut, log=log)
+    minimal = shrink(failing_ops, dut=dut, design=design, log=log)
 
     # re-run the minimal repro to get its (possibly different) mismatch detail
-    out = run_stimulus(minimal, dut=dut)
+    out = run_stimulus(minimal, dut=dut, design=design)
     if out["ok"] and out["result"]["mismatches"]:
         rep = out["result"]["mismatches"][0]
 
-    rc, tokens = root_cause(minimal, rep, dut=dut)
+    rc, tokens = root_cause(minimal, rep, dut=dut, design=design)
     fields = ", ".join(rep["expected"].keys())
     return {
         "title": f"DUT/reference mismatch on: {fields}",

@@ -212,6 +212,31 @@ body{ margin:0; }
 }
 
 /* --- additions for the live app (same design language) --- */
+.line.clickable{ cursor:pointer; border-radius:6px; margin:0 -6px; padding:2px 6px; transition:background .15s; }
+.line.clickable:hover{ background:rgba(255,255,255,.04); }
+.line .exp-caret{ color:var(--tx3); flex:none; margin-left:auto; transition:transform .2s; }
+.line .exp-caret.open{ transform:rotate(180deg); }
+.test-detail{ margin:2px 0 4px 47px; padding:9px 12px; font-size:12px; line-height:1.6;
+  color:var(--tx2); background:rgba(52,211,153,.04); border-left:2px solid rgba(52,211,153,.4);
+  border-radius:0 8px 8px 0; animation:fadeUp .25s ease-out; }
+.test-detail .td-meta{ color:var(--tx3); font-size:10.5px; margin-top:6px;
+  font-family:var(--mono); }
+
+.analysis-panel .hyp{ white-space:pre-wrap; }
+.model-tag{ font-size:10px; color:var(--tx3); border:1px solid var(--bd);
+  padding:2px 7px; border-radius:6px; font-family:var(--mono); }
+.chat-box{ display:flex; flex-direction:column; gap:0; }
+.chat-log{ display:flex; flex-direction:column; gap:10px; margin-top:14px;
+  max-height:340px; overflow-y:auto; padding-right:4px; }
+.chat-msg{ font-size:12.5px; line-height:1.6; }
+.chat-msg .who{ font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--tx3); font-family:var(--mono); margin-bottom:3px; }
+.chat-msg.user{ color:var(--tx); }
+.chat-msg.assistant{ color:var(--tx2); white-space:pre-wrap; }
+.chat-msg.assistant .who{ color:var(--em); }
+.chat-row{ display:flex; gap:8px; margin-top:14px; }
+.chat-row .field{ margin-bottom:0; flex:1; font-size:12.5px; }
+.chat-empty{ font-size:12px; color:var(--tx3); margin-top:14px; }
 .btn-run{ display:inline-flex; align-items:center; gap:7px; }
 .replay-chip{ display:inline-flex; align-items:center; gap:6px; font-size:11px; color:var(--tx3);
   border:1px dashed var(--bd2); padding:5px 10px; border-radius:8px; font-family:var(--mono); }

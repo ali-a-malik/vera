@@ -16,6 +16,7 @@ export default function App() {
   const [modal, setModal] = useState(false);
   const [designs, setDesigns] = useState([
     { id: "fifo_8x8", name: "fifo_8x8" },
+    { id: "rr_arbiter", name: "rr_arbiter" },
   ]);
   const [active, setActive] = useState("fifo_8x8");
   const [busy, setBusy] = useState(false);
@@ -44,7 +45,13 @@ export default function App() {
   const start = async () => {
     setBusy(true);
     if (sim.status === "done" || sim.status === "error") await post("/api/reset");
-    await post("/api/start", { dut: "buggy", demo: true });
+    // the second design demos the flywheel: warm-start from learned patterns
+    await post("/api/start", {
+      design: active,
+      dut: "buggy",
+      demo: true,
+      reuse_memory: active !== "fifo_8x8",
+    });
     setBusy(false);
   };
   const stop = async () => {
@@ -74,7 +81,8 @@ export default function App() {
       {view === "dashboard" ? (
         <Dashboard sim={sim} disp={disp} onInspect={() => setView("bug")} />
       ) : (
-        <BugView bug={lastBug.current} onBack={() => setView("dashboard")} />
+        <BugView bug={lastBug.current} sim={sim} connected={connected}
+                 onBack={() => setView("dashboard")} />
       )}
 
       {modal && (

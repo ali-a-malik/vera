@@ -17,34 +17,19 @@ import anthropic
 from engine.runner import run_stimulus
 from engine.stimulus import StimulusError, validate
 
+from engine import designs
+
 MODEL = "claude-sonnet-4-6"
 PIONEER_BASE_URL = "https://api.pioneer.ai"  # SDK appends /v1/messages
 MAX_ATTEMPTS = 3
 
-POINT_HINTS = {
-    "wrote_until_full": "write until count reaches 8 (DEPTH) without reading",
-    "read_until_empty": "after writing some values, read until count returns to 0",
-    "simultaneous_read_write": "use write_read while the FIFO is neither full nor empty",
-    "pointer_wraparound": "complete more than 8 successful writes (and/or 8 reads) so a pointer wraps past index 7 back to 0",
-    "write_while_full": "fill the FIFO completely (8 writes), then issue another write",
-    "read_while_empty": "issue a read while the FIFO is empty (count == 0)",
-}
 
-SYSTEM = """You generate test stimulus for a hardware FIFO verification run.
-
-The DUT is a synchronous FIFO, WIDTH=8 DEPTH=8:
-  inputs:  clk, rst, wr_en, rd_en, din[7:0]
-  outputs: dout[7:0], full, empty, count
-Writes are ignored when full; reads are ignored when empty.
-
-A stimulus is a JSON array of operations, one per clock cycle:
-  {"op": "reset"}                  rst=1 for one cycle
-  {"op": "write", "val": N}        wr_en=1, din=N (0..255)
-  {"op": "read"}                   rd_en=1
-  {"op": "write_read", "val": N}   wr_en=1 and rd_en=1 in the same cycle
-  {"op": "idle"}                   all enables low
-
-Respond with ONLY the JSON array — no prose, no code fences."""
+def system_prompt(design):
+    cfg = designs.get(design)
+    return (f"You generate test stimulus for a hardware verification run.\n\n"
+            f"{cfg['system_interface']}\n\n"
+            "A stimulus is a JSON array of those operations, one per clock cycle.\n"
+            "Respond with ONLY the JSON array — no prose, no code fences.")
 
 EXAMPLE_1 = ('[{"op": "reset"}, {"op": "write", "val": 163}, {"op": "write", "val": 92}, '
              '{"op": "read"}, {"op": "read"}, {"op": "read"}]')
@@ -64,15 +49,20 @@ def client():
     return _client
 
 
-def build_prompt(uncovered, target=None, error_feedback=None, prev_stimulus=None):
+def build_prompt(design, uncovered, target=None, error_feedback=None,
+                 prev_stimulus=None, memory_examples=None):
+    cfg = designs.get(design)
     target = target or uncovered[0]
-    lines = [f"Your target corner case: {target} — {POINT_HINTS[target]}"]
+    lines = [f"Your target corner case: {target} — {cfg['hints'][target]}"]
     lines.append("")
     lines.append("Start with a reset. Design ONE minimal, surgical stimulus list "
                  "(under 16 ops) that hits exactly this target — do not pad the "
                  "test with unrelated activity.")
     lines.append(f"Example stimulus A: {EXAMPLE_1}")
     lines.append(f"Example stimulus B: {EXAMPLE_2}")
+    for src_design, point, ops in (memory_examples or []):
+        lines.append(f"Pattern that worked on {src_design} (closed {point}): "
+                     f"{json.dumps(ops)}")
     if error_feedback:
         lines.append("")
         lines.append(f"Your previous attempt was: {json.dumps(prev_stimulus) if prev_stimulus else '(unparseable)'}")
@@ -91,21 +81,24 @@ def parse_response(text):
     return json.loads(text[start:end + 1])
 
 
-def generate_stimulus(uncovered, target=None, error_feedback=None, prev_stimulus=None):
+def generate_stimulus(design, uncovered, target=None, error_feedback=None,
+                      prev_stimulus=None, memory_examples=None):
     """One model call. Returns (ops, tokens_used). Raises on parse failure."""
     msg = client().messages.create(
         model=MODEL,
         max_tokens=4000,
-        system=SYSTEM,
+        system=system_prompt(design),
         messages=[{"role": "user",
-                   "content": build_prompt(uncovered, target, error_feedback, prev_stimulus)}],
+                   "content": build_prompt(design, uncovered, target, error_feedback,
+                                           prev_stimulus, memory_examples)}],
     )
     tokens = msg.usage.input_tokens + msg.usage.output_tokens
     ops = validate(parse_response(msg.content[0].text))
     return ops, tokens
 
 
-def generate_and_run(uncovered, target=None, dut="good", log=lambda *a: None):
+def generate_and_run(uncovered, target=None, dut="good", design="fifo_8x8",
+                     memory_examples=None, log=lambda *a: None):
     """generate -> run, feeding errors back to the model. Max 3 attempts.
 
     Returns {"ok": bool, "ops": [...], "result": {...}, "tokens": int,
@@ -115,14 +108,15 @@ def generate_and_run(uncovered, target=None, dut="good", log=lambda *a: None):
     error, prev = None, None
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            ops, tokens = generate_stimulus(uncovered, target, error, prev)
+            ops, tokens = generate_stimulus(design, uncovered, target, error, prev,
+                                            memory_examples)
             tokens_total += tokens
         except (StimulusError, json.JSONDecodeError) as e:
             error, prev = str(e), None
             log("warn", f"attempt {attempt}: bad stimulus from model — {e}")
             continue
 
-        out = run_stimulus(ops, dut=dut)
+        out = run_stimulus(ops, dut=dut, design=design)
         if out["ok"]:
             return {"ok": True, "ops": ops, "result": out["result"],
                     "tokens": tokens_total, "attempts": attempt, "error": None}

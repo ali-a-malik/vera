@@ -32,7 +32,8 @@ _thread = None
 
 
 class StartOptions(BaseModel):
-    dut: str = "buggy"          # "good" | "buggy"
+    design: str = "fifo_8x8"    # "fifo_8x8" | "rr_arbiter"
+    dut: str = "buggy"          # "good" | "buggy" (designs without a buggy RTL force good)
     demo: bool = True           # pace log lines for presenting
     use_ai: bool = True
     reuse_memory: bool = False  # flywheel: replay patterns from earlier runs
@@ -59,8 +60,8 @@ def start(opts: StartOptions):
         if _running():
             return {"ok": False, "error": "already running"}
         use_ai = opts.use_ai and bool(os.environ.get("PIONEER_API_KEY"))
-        _orch = Orchestrator(dut=opts.dut, demo=opts.demo, use_ai=use_ai,
-                             reuse_memory=opts.reuse_memory)
+        _orch = Orchestrator(design=opts.design, dut=opts.dut, demo=opts.demo,
+                             use_ai=use_ai, reuse_memory=opts.reuse_memory)
         _thread = threading.Thread(target=_run_safely, daemon=True)
         _thread.start()
         return {"ok": True, "ai": use_ai}
@@ -75,6 +76,31 @@ def _run_safely():
             {"t": "--:--", "level": "err", "text": f"engine error: {e}"})
         write_state(_orch.state)
         raise
+
+
+class ChatRequest(BaseModel):
+    question: str
+    history: list = []   # [{"role": "user"|"assistant", "content": str}, ...]
+
+
+@app.post("/api/chat")
+def chat(req: ChatRequest):
+    """Q&A about the run: opus-4-8 via Pioneer, grounded in the Fable 5
+    analysis + the live run data + the RTL."""
+    from engine import explain
+    state = get_state()
+    design = state.get("dut", "fifo_8x8")
+    dut = "buggy" if state.get("bug") else "good"
+    try:
+        answer, tokens = explain.chat(req.question, req.history, state,
+                                      explain.rtl_source(design, dut))
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:300]}
+    if _orch is not None:
+        _orch.state["counts"]["tokens_used"] += tokens
+        write_state(_orch.state)
+    return {"ok": True, "answer": answer, "model": explain.CHAT_MODEL,
+            "tokens": tokens}
 
 
 @app.post("/api/stop")
