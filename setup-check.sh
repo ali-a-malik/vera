@@ -20,14 +20,14 @@ command -v npm >/dev/null && ok "npm $(npm --version)" \
   || bad "npm missing"
 
 # API key: env var or .env file (the engine reads it inside the container)
-if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
-  ok "ANTHROPIC_API_KEY (env)"
-elif [ -f .env ] && grep -q '^ANTHROPIC_API_KEY=..*' .env; then
-  ok "ANTHROPIC_API_KEY (.env)"
+if [ -n "${PIONEER_API_KEY:-}" ]; then
+  ok "PIONEER_API_KEY (env)"
+elif [ -f .env ] && grep -q '^PIONEER_API_KEY=..*' .env; then
+  ok "PIONEER_API_KEY (.env)"
 else
-  warn "no ANTHROPIC_API_KEY — the loop still runs on fallback seed tests;"
+  warn "no PIONEER_API_KEY — the loop still runs on fallback seed tests;"
   warn "  AI generation + root-cause need it. Put it in .env (gitignored):"
-  warn "  ANTHROPIC_API_KEY=sk-ant-..."
+  warn "  PIONEER_API_KEY=pio_sk_..."
 fi
 
 # iverilog/cocotb/python live inside the image — only checked when daemon is up

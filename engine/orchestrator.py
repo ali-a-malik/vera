@@ -96,13 +96,16 @@ class Orchestrator:
         pattern = strategy.known_pattern(self.mem, point) if self.reuse_memory else None
         if pattern is not None:
             self.log("info", f"memory hit — reusing pattern for {POINT_NAMES[point]}")
+            self.state["memory"]["patterns_reused"] = (
+                self.state["memory"].get("patterns_reused", 0) + 1)
             return validate(pattern), "memory", None, 0
 
         if first_iter or not self.use_ai:
             return validate(FALLBACK_SEEDS[point]), "seed", None, 0
 
         from engine.agent_gen import generate_and_run
-        gen = generate_and_run(self.cov.uncovered(), dut=self.dut, log=self.log)
+        gen = generate_and_run(self.cov.uncovered(), target=point,
+                               dut=self.dut, log=self.log)
         if gen["ok"]:
             return gen["ops"], "ai", gen["result"], gen["tokens"]
 

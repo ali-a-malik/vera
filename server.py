@@ -58,7 +58,7 @@ def start(opts: StartOptions):
     with _lock:
         if _running():
             return {"ok": False, "error": "already running"}
-        use_ai = opts.use_ai and bool(os.environ.get("ANTHROPIC_API_KEY"))
+        use_ai = opts.use_ai and bool(os.environ.get("PIONEER_API_KEY"))
         _orch = Orchestrator(dut=opts.dut, demo=opts.demo, use_ai=use_ai,
                              reuse_memory=opts.reuse_memory)
         _thread = threading.Thread(target=_run_safely, daemon=True)

@@ -11,9 +11,13 @@ export default function StatsStrip({ counts, memory }) {
         <div className="stat" key={k}>
           <div className="lbl">
             {k}
-            {k === "tests generated" && memory?.patterns_learned > 0 && (
+            {k === "tests generated" && memory?.patterns_reused > 0 ? (
+              <span className="mi-meta mono" style={{ color: "var(--em)" }}>
+                · reused {memory.patterns_reused} patterns
+              </span>
+            ) : k === "tests generated" && memory?.patterns_learned > 0 ? (
               <span className="mi-meta mono">· {memory.patterns_learned} patterns learned</span>
-            )}
+            ) : null}
           </div>
           <div className={`stat-v mono ${danger && v ? "danger" : ""}`}>{v}</div>
         </div>

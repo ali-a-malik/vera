@@ -29,9 +29,11 @@ Everything simulator-side runs in Docker — no local iverilog/cocotb needed.
 1. **Docker runtime** (one-time): `brew install colima docker docker-compose`
 2. **API key**: create `.env` in the repo root (gitignored):
    ```
-   ANTHROPIC_API_KEY=sk-ant-...
+   PIONEER_API_KEY=pio_sk_...
    ```
-   Without it the loop still completes using fallback seed tests, but AI test
+   Inference runs on [Pioneer.ai](https://docs.pioneer.ai/concepts/inference)
+   (model `claude-sonnet-4-6` via the Anthropic-compatible endpoint). Without
+   a key the loop still completes using fallback seed tests, but AI test
    generation and the root-cause hypothesis are disabled.
 3. **Check**: `./setup-check.sh`
 

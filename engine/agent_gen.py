@@ -1,4 +1,8 @@
-"""Agent 1 — Generate: asks Claude for stimulus aimed at uncovered points.
+"""Agent 1 — Generate: asks the model for stimulus aimed at uncovered points.
+
+Inference runs on Pioneer.ai via its Anthropic-compatible endpoint
+(https://docs.pioneer.ai/concepts/inference), so the standard Anthropic SDK
+is pointed at PIONEER_BASE_URL and authenticated with PIONEER_API_KEY.
 
 generate_and_run() is the full loop step: generate -> validate -> run on the
 simulator -> on error, feed the error text back to the model (max 3 attempts).
@@ -14,6 +18,7 @@ from engine.runner import run_stimulus
 from engine.stimulus import StimulusError, validate
 
 MODEL = "claude-sonnet-4-6"
+PIONEER_BASE_URL = "https://api.pioneer.ai"  # SDK appends /v1/messages
 MAX_ATTEMPTS = 3
 
 POINT_HINTS = {
@@ -52,19 +57,20 @@ _client = None
 def client():
     global _client
     if _client is None:
-        if not os.environ.get("ANTHROPIC_API_KEY"):
-            raise RuntimeError("ANTHROPIC_API_KEY is not set")
-        _client = anthropic.Anthropic()
+        key = os.environ.get("PIONEER_API_KEY")
+        if not key:
+            raise RuntimeError("PIONEER_API_KEY is not set")
+        _client = anthropic.Anthropic(api_key=key, base_url=PIONEER_BASE_URL)
     return _client
 
 
-def build_prompt(uncovered, error_feedback=None, prev_stimulus=None):
-    lines = ["These corner cases are NOT yet covered:"]
-    for key in uncovered:
-        lines.append(f"- {key}: {POINT_HINTS[key]}")
+def build_prompt(uncovered, target=None, error_feedback=None, prev_stimulus=None):
+    target = target or uncovered[0]
+    lines = [f"Your target corner case: {target} — {POINT_HINTS[target]}"]
     lines.append("")
-    lines.append("Start with a reset. Design ONE stimulus list (under 60 ops) that hits "
-                 "as many of the uncovered cases as possible.")
+    lines.append("Start with a reset. Design ONE minimal, surgical stimulus list "
+                 "(under 16 ops) that hits exactly this target — do not pad the "
+                 "test with unrelated activity.")
     lines.append(f"Example stimulus A: {EXAMPLE_1}")
     lines.append(f"Example stimulus B: {EXAMPLE_2}")
     if error_feedback:
@@ -85,21 +91,21 @@ def parse_response(text):
     return json.loads(text[start:end + 1])
 
 
-def generate_stimulus(uncovered, error_feedback=None, prev_stimulus=None):
+def generate_stimulus(uncovered, target=None, error_feedback=None, prev_stimulus=None):
     """One model call. Returns (ops, tokens_used). Raises on parse failure."""
     msg = client().messages.create(
         model=MODEL,
         max_tokens=4000,
         system=SYSTEM,
         messages=[{"role": "user",
-                   "content": build_prompt(uncovered, error_feedback, prev_stimulus)}],
+                   "content": build_prompt(uncovered, target, error_feedback, prev_stimulus)}],
     )
     tokens = msg.usage.input_tokens + msg.usage.output_tokens
     ops = validate(parse_response(msg.content[0].text))
     return ops, tokens
 
 
-def generate_and_run(uncovered, dut="good", log=lambda *a: None):
+def generate_and_run(uncovered, target=None, dut="good", log=lambda *a: None):
     """generate -> run, feeding errors back to the model. Max 3 attempts.
 
     Returns {"ok": bool, "ops": [...], "result": {...}, "tokens": int,
@@ -109,7 +115,7 @@ def generate_and_run(uncovered, dut="good", log=lambda *a: None):
     error, prev = None, None
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            ops, tokens = generate_stimulus(uncovered, error, prev)
+            ops, tokens = generate_stimulus(uncovered, target, error, prev)
             tokens_total += tokens
         except (StimulusError, json.JSONDecodeError) as e:
             error, prev = str(e), None

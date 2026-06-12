@@ -26,28 +26,41 @@
         "op": "read"
       }
     ],
-    "simultaneous_read_write": [
+    "wrote_until_full": [
       {
         "op": "reset"
       },
       {
         "op": "write",
-        "val": 10
+        "val": 1
       },
       {
-        "op": "write_read",
-        "val": 20
+        "op": "write",
+        "val": 2
       },
       {
-        "op": "write_read",
-        "val": 21
+        "op": "write",
+        "val": 3
       },
       {
-        "op": "write_read",
-        "val": 22
+        "op": "write",
+        "val": 4
       },
       {
-        "op": "read"
+        "op": "write",
+        "val": 5
+      },
+      {
+        "op": "write",
+        "val": 6
+      },
+      {
+        "op": "write",
+        "val": 7
+      },
+      {
+        "op": "write",
+        "val": 8
       }
     ],
     "pointer_wraparound": [
@@ -63,94 +76,45 @@
         "val": 2
       },
       {
-        "op": "write_read",
-        "val": 64
+        "op": "write",
+        "val": 3
       },
       {
-        "op": "write_read",
-        "val": 65
+        "op": "write",
+        "val": 4
       },
       {
-        "op": "write_read",
-        "val": 66
+        "op": "write",
+        "val": 5
       },
       {
-        "op": "write_read",
-        "val": 67
-      },
-      {
-        "op": "write_read",
-        "val": 68
-      },
-      {
-        "op": "write_read",
-        "val": 69
-      },
-      {
-        "op": "write_read",
-        "val": 70
-      },
-      {
-        "op": "write_read",
-        "val": 71
-      },
-      {
-        "op": "read"
-      },
-      {
-        "op": "read"
-      }
-    ],
-    "read_while_empty": [
-      {
-        "op": "reset"
-      },
-      {
-        "op": "read"
+        "op": "write",
+        "val": 6
       },
       {
         "op": "write",
         "val": 7
       },
       {
-        "op": "read"
+        "op": "write",
+        "val": 8
       }
     ],
-    "wrote_until_full": [
+    "simultaneous_read_write": [
       {
         "op": "reset"
       },
       {
         "op": "write",
-        "val": 16
+        "val": 42
       },
       {
         "op": "write",
+        "val": 85
+      },
+      {
+        "op": "write_read",
         "val": 17
-      },
-      {
-        "op": "write",
-        "val": 18
-      },
-      {
-        "op": "write",
-        "val": 19
-      },
-      {
-        "op": "write",
-        "val": 20
-      },
-      {
-        "op": "write",
-        "val": 21
-      },
-      {
-        "op": "write",
-        "val": 22
-      },
-      {
-        "op": "write",
-        "val": 23
       }
     ],
     "write_while_full": [
@@ -159,41 +123,49 @@
       },
       {
         "op": "write",
-        "val": 16
+        "val": 1
       },
       {
         "op": "write",
-        "val": 17
+        "val": 2
       },
       {
         "op": "write",
-        "val": 18
+        "val": 3
       },
       {
         "op": "write",
-        "val": 19
+        "val": 4
       },
       {
         "op": "write",
-        "val": 20
+        "val": 5
       },
       {
         "op": "write",
-        "val": 21
+        "val": 6
       },
       {
         "op": "write",
-        "val": 22
+        "val": 7
       },
       {
         "op": "write",
-        "val": 23
+        "val": 8
       },
       {
         "op": "write",
-        "val": 99
+        "val": 9
+      }
+    ],
+    "read_while_empty": [
+      {
+        "op": "reset"
+      },
+      {
+        "op": "read"
       }
     ]
   },
-  "runs": 5
+  "runs": 2
 }
